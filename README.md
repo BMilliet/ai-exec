@@ -1,71 +1,97 @@
-# ai-exec
-🤖 CLI for interprets structured AI output to changes directly to your codebase
+# AI-Exec 🧠✨
 
+**AI-Exec** is a lightweight CLI tool that enables automated codebase editing using AI-generated JSON instructions.
 
-## Prompt instructions for AI:
-
-### 🧠 Prompt: Generate File Operations JSON from Aggregated Code
-
-You are an expert software development assistant.  
-You will receive **aggregated source code** in the format shown below, and your task is to generate a structured JSON that describes how the codebase should be changed.
+It allows LLMs (like ChatGPT or Gemini) to analyze your codebase and respond with structured change instructions in JSON format, which `ai-exec` can then execute to:
+- ✅ Create new files
+- ✅ Overwrite existing files with new content
+- ✅ Delete files
 
 ---
 
-### 📦 Aggregated Code Format
+## 🛠 How It Works
 
-The code you will receive is pre-processed and bundled in the following format:
-— START path/to/file.swift —
-…code content…
-— END path/to/file.swift —
+1. **Aggregate** your project files using the `aggregate` command.
+   This scans your project and creates a `aggregated_1.txt`, `aggregated_2.txt`, etc., bundling code files in a format easily digestible by AI.
 
-You may receive multiple such blocks, each representing a real file in the project.
+2. **Prompt your AI** (e.g. ChatGPT) using the prompt template in [`ai_exec_prompt.md`](./ai_exec_prompt.md).  
+   Provide a clear task and paste the aggregated file(s) as reference.
 
----
+3. **Paste the resulting JSON** into a file named `ai_changes.json` in your project root.
 
-### 🎯 Your Objective
-
-Based on:
-- The user’s task or request (provided at the top),
-- The actual contents of the files (aggregated as shown above),
-
-You must return a **JSON object** containing a list of precise file operations that would implement the user's request in the codebase.
-
-This JSON will be interpreted and executed by an automated tool (`ai-exec`) to directly modify files on disk. Your instructions must be complete, precise, and **syntactically valid JSON**.
+4. **Run the executor**:
+   ```bash
+   ai-exec exec
+   ```
 
 ---
 
-### 🧩 JSON Format Specification
+## 📦 Commands
 
+### `ai-exec aggregate`
+
+Prompts the user for a file extension (e.g. `swift`, `kt`, `go`) and aggregates all matching files recursively from the current directory.  
+It outputs 1 or more files like `aggregated_1.txt`, `aggregated_2.txt` in chunks of 1000 lines.
+
+### `ai-exec exec`
+
+Reads the `ai_changes.json` file in the current directory and applies all actions listed in it:
+- `create_file`
+- `edit_file` (overwrites entire file)
+- `delete_file`
+
+---
+
+## 📂 JSON Instruction Format
+
+Example:
 ```json
 {
   "actions": [
     {
       "action": "create_file",
-      "path": "path/to/new/file.swift",
-      "content": "Entire file content to be created"
+      "path": "Sources/App/NewFile.swift",
+      "content": "print(\"Hello World\")"
     },
     {
       "action": "edit_file",
-      "path": "path/to/existing/file.swift",
-      "content": "Full replacement content for the file"
+      "path": "Sources/App/OldFile.swift",
+      "content": "// Entire new content of the file here"
     },
     {
       "action": "delete_file",
-      "path": "path/to/file/to/delete.swift"
+      "path": "Sources/App/Obsolete.swift"
     }
   ]
 }
-
-When editing files, the content field must contain the full updated content of the target file, not a diff or patch. The file will be overwritten entirely.
+```
 
 ---
 
-### 🚫 DO NOT DO
+## 📑 Prompt Template
 
-Below are strict rules to ensure the AI’s output is compatible with the ai-exec CLI. Violating any of these may result in failure to apply the changes.
-- ❌ Do not return partial diffs or line-based patches. Always include the complete file content for edits.
-- ❌ Do not wrap the JSON in code blocks (e.g., no triple backticks like ```json).
-- ❌ Do not include invalid or non-existent paths. Only refer to file paths present in the --- START path --- blocks.
-- ❌ Do not invent surrounding context or code that does not appear in the aggregated input.
-- ❌ Do not use smart quotes like “ ” or ‘ ’ — only use plain straight quotes: “ and ’.
+Use the instructions in [`ai_exec_prompt.md`](./ai_exec_prompt.md) to guide any LLM on how to generate the proper JSON based on your codebase and task.
+
+---
+
+## ⚠️ Warnings
+
+- `ai-exec` will **overwrite files directly**. Ensure you have backups or version control.
+- Only use AI-generated JSON that strictly follows the format and rules.
+
+---
+
+## ✅ Example Flow
+
+```bash
+ai-exec aggregate
+# → select extension (e.g. swift)
+
+# → go to ChatGPT and ask: "Add authentication controller"
+# → paste aggregated_1.txt and prompt instructions
+# → get JSON output and save as ai_changes.json
+
+ai-exec exec
+# → files are updated automatically ✨
+```
 
