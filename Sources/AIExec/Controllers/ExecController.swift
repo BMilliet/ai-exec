@@ -28,31 +28,12 @@ struct ExecController {
                 ui.message("🗑️ Deleted file: \(action.path)")
 
             case "edit_file":
-                guard let edits = action.edits, var content = try? String(contentsOfFile: action.path) else {
-                    ui.error("⚠️ Skipping edit_file: failed to read \(action.path)")
+                guard let content = action.content else {
+                    ui.error("⚠️ Skipping edit_file: missing 'content' field for \(action.path)")
                     continue
                 }
-                for edit in edits {
-                    switch edit.operation {
-                    case "insert_after":
-                        if let range = content.range(of: edit.search) {
-                            let insertIndex = content.index(after: range.upperBound)
-                            content.insert(contentsOf: "\n" + edit.content, at: insertIndex)
-                        }
-                    case "insert_before":
-                        if let range = content.range(of: edit.search) {
-                            content.insert(contentsOf: edit.content + "\n", at: range.lowerBound)
-                        }
-                    case "replace":
-                        content = content.replacingOccurrences(of: edit.search, with: edit.content)
-                    case "delete":
-                        content = content.replacingOccurrences(of: edit.search, with: "")
-                    default:
-                        ui.debug("Unknown edit operation: \(edit.operation)")
-                    }
-                }
                 try? content.write(toFile: action.path, atomically: true, encoding: .utf8)
-                ui.message("✏️ Edited file: \(action.path)")
+                ui.message("✏️ Rewrote file: \(action.path)")
 
             default:
                 ui.error("Unknown action: \(action.action)")
