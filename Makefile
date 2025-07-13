@@ -1,5 +1,5 @@
 # Name of the binary
-BINARY_NAME=ai-exec
+BINARY_NAME=aie
 
 # Path to the debug executable
 BUILD_PATH=.build/debug/$(BINARY_NAME)

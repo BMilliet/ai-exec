@@ -11,7 +11,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "ai-exec",
+            name: "aie",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
