@@ -16,7 +16,7 @@ struct AggregateController {
         var buffer: [String] = []
         var fileCounter = 1
         var lineCounter = 0
-        let maxLines = 1000
+        let maxLines = 10000
 
         for path in filePaths {
             let relativePath = path.replacingOccurrences(of: currentDir + "/", with: "")
